@@ -1,0 +1,18 @@
+# Add any directories, files, or patterns you don't want to be tracked by version control
+*.pyc
+*.swp
+*~
+*.ps1
+*.sh
+*.csv
+__pycache__
+nubank.sqlite3
+/static
+.DS_Store
+/.idea
+/media
+/uploads
+/templates/uploads
+/downloads
+.vscode
+/log

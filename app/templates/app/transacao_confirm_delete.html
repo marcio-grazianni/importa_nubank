@@ -1,0 +1,40 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Excluir Transação - Extrato Bancário{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>🗑️ Confirmar Exclusão</h2>
+    
+    <p style="margin: 20px 0; font-size: 16px;">
+        Tem certeza que deseja excluir esta transação?
+    </p>
+    
+    <div class="card" style="background-color: #f8f9fa;">
+        <table>
+            <tr>
+                <th style="width: 200px;">Data:</th>
+                <td>{{ object.data|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <th>Valor:</th>
+                <td class="{% if object.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}">
+                    R$ {{ object.valor|floatformat:2 }}
+                </td>
+            </tr>
+            <tr>
+                <th>Descrição:</th>
+                <td>{{ object.descricao|truncatewords:20 }}</td>
+            </tr>
+        </table>
+    </div>
+    
+    <form method="post" style="margin-top: 30px;">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Sim, excluir</button>
+        <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
+</div>
+{% endblock %}
+
+

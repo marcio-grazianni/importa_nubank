@@ -1,0 +1,109 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Relatório Sintético - Extrato Bancário{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>📊 Relatório Sintético</h2>
+    <p style="margin-top: 10px; color: #6c757d;">
+        Transações agrupadas por descrição com valores somados
+    </p>
+    
+    <!-- Filtros -->
+    <form method="get" class="filters">
+        <div class="form-group">
+            <label for="busca">Buscar:</label>
+            <input type="text" id="busca" name="busca" value="{{ request.GET.busca }}" placeholder="Buscar na descrição...">
+        </div>
+        
+        <div class="form-group">
+            <label for="tipo">Tipo:</label>
+            <select id="tipo" name="tipo">
+                <option value="">Todos</option>
+                {% for value, label in tipos_transacao %}
+                    <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="data_inicio">Data Início:</label>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ request.GET.data_inicio }}">
+        </div>
+        
+        <div class="form-group">
+            <label for="data_fim">Data Fim:</label>
+            <input type="date" id="data_fim" name="data_fim" value="{{ request.GET.data_fim }}">
+        </div>
+        
+        <div class="form-group" style="display: flex; align-items: flex-end;">
+            <button type="submit" class="btn">Filtrar</button>
+            <a href="{% url 'app:transacao_sintetico' %}" class="btn btn-secondary" style="margin-left: 10px;">Limpar</a>
+        </div>
+    </form>
+</div>
+
+<!-- Estatísticas -->
+{% if total_entradas or total_saidas %}
+<div class="stats">
+    <div class="stat-card">
+        <h3>Total de Entradas</h3>
+        <div class="value">R$ {{ total_entradas|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Total de Saídas</h3>
+        <div class="value">R$ {{ total_saidas|floatformat:2 }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Saldo</h3>
+        <div class="value {% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
+            R$ {{ saldo|floatformat:2 }}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3>Grupos por Descrição ({{ total_grupos }} grupos)</h3>
+        <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Ver Lista Completa</a>
+    </div>
+    
+    {% if agrupado %}
+    <table>
+        <thead>
+            <tr>
+                <th style="width: 60%;">Descrição</th>
+                <th style="text-align: right;">Quantidade</th>
+                <th style="text-align: right;">Valor Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in agrupado %}
+            <tr>
+                <td>{{ item.descricao }}</td>
+                <td style="text-align: right;">{{ item.quantidade }}</td>
+                <td style="text-align: right;" class="{% if item.total_valor >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
+                    R$ {{ item.total_valor|floatformat:2 }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="font-weight: bold; background-color: #f8f9fa;">
+                <td>Total Geral</td>
+                <td style="text-align: right;">{{ total_grupos }} grupos</td>
+                <td style="text-align: right;" class="{% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
+                    R$ {{ saldo|floatformat:2 }}
+                </td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <p>Nenhuma transação encontrada com os filtros aplicados.</p>
+    {% endif %}
+</div>
+{% endblock %}
+
