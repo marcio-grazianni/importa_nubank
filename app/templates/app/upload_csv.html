@@ -11,7 +11,7 @@
         {% csrf_token %}
         <div class="form-group">
             <label for="csv_file">Arquivo CSV:</label>
-            <input type="file" id="csv_file" name="csv_file" accept=".csv" required>
+            <input type="file" id="csv_file" name="csv_file" accept=".csv" class="form-control" required>
             <small style="color: #6c757d; display: block; margin-top: 5px;">
                 Formato esperado: Data, Valor, Identificador, Descrição
             </small>
@@ -47,7 +47,7 @@
                 // Se não conseguir focar, pelo menos destacar o label
                 var label = document.querySelector('label[for="csv_file"]');
                 if (label) {
-                    label.style.color = '#8A05BE';
+                    label.style.color = '#007bff';
                 }
             }
         }

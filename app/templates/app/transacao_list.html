@@ -10,35 +10,88 @@
     <!-- Filtros -->
     <form method="get" class="filters">
         <div class="form-group">
-            <label for="data_inicio">Data Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}" autofocus>
+            {{ filtro_form.data_inicio.label_tag }}
+            {{ filtro_form.data_inicio }}
+            {% if filtro_form.data_inicio.errors %}
+                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_inicio.errors }}</div>
+            {% endif %}
         </div>
 
         <div class="form-group">
-            <label for="data_fim">Data Fim:</label>
-            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
+            {{ filtro_form.data_fim.label_tag }}
+            {{ filtro_form.data_fim }}
+            {% if filtro_form.data_fim.errors %}
+                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_fim.errors }}</div>
+            {% endif %}
         </div>
 
         <div class="form-group">
-            <label for="movimentacao">Movimentação:</label>
-            <select id="movimentacao" name="movimentacao">
-                <option value="todos" {% if movimentacao_atual == 'todos' %}selected{% endif %}>Todos</option>
-                <option value="entradas" {% if movimentacao_atual == 'entradas' %}selected{% endif %}>Entradas</option>
-                <option value="saidas" {% if movimentacao_atual == 'saidas' or not movimentacao_atual %}selected{% endif %}>Saídas</option>
-            </select>
+            {{ filtro_form.movimentacao.label_tag }}
+            {{ filtro_form.movimentacao }}
+            {% if filtro_form.movimentacao.errors %}
+                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.movimentacao.errors }}</div>
+            {% endif %}
         </div>
 
         <div class="form-group">
-            <label for="busca">Buscar:</label>
-            <input type="text" id="busca" name="busca" value="{{ request.GET.busca }}" placeholder="Buscar na descrição...">
+            {{ filtro_form.busca.label_tag }}
+            {{ filtro_form.busca }}
+            {% if filtro_form.busca.errors %}
+                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.busca.errors }}</div>
+            {% endif %}
         </div>
 
-        <div class="form-group" style="display: flex; align-items: flex-end;">
+        <div class="form-group btn-group-filters">
             <button type="submit" class="btn">Filtrar</button>
-            <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary" style="margin-left: 10px;">Limpar</a>
+            <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Limpar</a>
         </div>
     </form>
 </div>
+
+{% block extra_media %}
+<script>
+    // Garantir que jQuery está disponível antes de carregar form.media
+    if (typeof jQuery === 'undefined') {
+        document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\/script>');
+    }
+</script>
+{{ filtro_form.media }}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function() {
+        function focusFirstField() {
+            // Tentar focar no campo de data primeiro
+            if (typeof jQuery !== 'undefined' && jQuery.fn.datepicker) {
+                var dateInput = jQuery('.input-group input[name="data_inicio"]').first();
+                if (dateInput.length > 0) {
+                    setTimeout(function() {
+                        dateInput.focus();
+                    }, 100);
+                    return;
+                }
+            }
+            
+            // Fallback: focar no primeiro campo editável
+            var firstInput = document.querySelector('.form-control:not([readonly]), input[type="text"]:not([readonly]), input[type="number"], textarea, select');
+            if (firstInput) {
+                setTimeout(function() {
+                    firstInput.focus();
+                }, 100);
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(focusFirstField, 800);
+            });
+        } else {
+            setTimeout(focusFirstField, 800);
+        }
+    })();
+</script>
+{% endblock %}
 
 <!-- Estatísticas -->
 {% if total_entradas or total_saidas %}
@@ -63,7 +116,9 @@
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3>Transações ({{ page_obj.paginator.count }} total)</h3>
-        <a href="{% url 'app:transacao_create' %}" class="btn">➕ Nova Transação</a>
+        <a href="{% url 'app:transacao_create' %}" class="btn">
+            <span style="color: #fff; font-weight: bold; margin-right: 5px;">+</span>Nova Transação
+        </a>
     </div>
 
     {% if transacoes %}

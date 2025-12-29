@@ -8,6 +8,7 @@ from django.urls import reverse_lazy
 from django.db import transaction
 from django.db.models import Sum, Count
 from .models import TransacaoBancaria
+from .forms import TransacaoForm, FiltroForm
 
 
 def upload_csv(request):
@@ -128,13 +129,13 @@ class TransacaoListView(ListView):
     model = TransacaoBancaria
     template_name = 'app/transacao_list.html'
     context_object_name = 'transacoes'
-    paginate_by = 50
+    paginate_by = 100
     
     def get_queryset(self):
         queryset = super().get_queryset()
         
-        # Filtro por movimentação (padrão: 'saidas')
-        movimentacao = self.request.GET.get('movimentacao', 'saidas')
+        # Filtro por movimentação (padrão: 'todos')
+        movimentacao = self.request.GET.get('movimentacao', 'todos')
         if movimentacao == 'entradas':
             queryset = queryset.filter(valor__gt=0)
         elif movimentacao == 'saidas':
@@ -182,7 +183,6 @@ class TransacaoListView(ListView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['movimentacao_atual'] = self.request.GET.get('movimentacao', 'saidas')
         context['order_by'] = self.request.GET.get('order_by', '-data')
         
         # Datas padrão (primeiro e último dia do mês corrente)
@@ -190,9 +190,15 @@ class TransacaoListView(ListView):
         primeiro_dia_mes = hoje.replace(day=1)
         ultimo_dia_mes = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
         
-        # Usar valores da query string se existirem, senão usar padrões
-        context['data_inicio_padrao'] = self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d'))
-        context['data_fim_padrao'] = self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d'))
+        # Criar form de filtro com valores da query string ou padrões
+        initial_data = {
+            'data_inicio': self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d')),
+            'data_fim': self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d')),
+            'movimentacao': self.request.GET.get('movimentacao', 'todos'),
+            'busca': self.request.GET.get('busca', ''),
+        }
+        context['filtro_form'] = FiltroForm(initial=initial_data)
+        context['movimentacao_atual'] = initial_data['movimentacao']
         
         # Estatísticas
         queryset = self.get_queryset()
@@ -210,8 +216,8 @@ class TransacaoListView(ListView):
 class TransacaoCreateView(CreateView):
     """View para criar nova transação"""
     model = TransacaoBancaria
+    form_class = TransacaoForm
     template_name = 'app/transacao_form.html'
-    fields = ['data', 'valor', 'identificador', 'descricao']
     success_url = reverse_lazy('app:transacao_list')
     
     def form_valid(self, form):
@@ -222,8 +228,8 @@ class TransacaoCreateView(CreateView):
 class TransacaoUpdateView(UpdateView):
     """View para editar transação existente"""
     model = TransacaoBancaria
+    form_class = TransacaoForm
     template_name = 'app/transacao_form.html'
-    fields = ['data', 'valor', 'identificador', 'descricao']
     success_url = reverse_lazy('app:transacao_list')
     
     def form_valid(self, form):
@@ -257,8 +263,8 @@ class TransacaoSinteticoView(TemplateView):
         """Aplica os mesmos filtros da lista de transações"""
         queryset = TransacaoBancaria.objects.all()
         
-        # Filtro por movimentação (padrão: 'saidas')
-        movimentacao = self.request.GET.get('movimentacao', 'saidas')
+        # Filtro por movimentação (padrão: 'todos')
+        movimentacao = self.request.GET.get('movimentacao', 'todos')
         if movimentacao == 'entradas':
             queryset = queryset.filter(valor__gt=0)
         elif movimentacao == 'saidas':
@@ -301,21 +307,24 @@ class TransacaoSinteticoView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['movimentacao_atual'] = self.request.GET.get('movimentacao', 'saidas')
+        context['order_by'] = self.request.GET.get('order_by', '-total_valor')
         
         # Datas padrão (primeiro e último dia do mês corrente)
         hoje = date.today()
         primeiro_dia_mes = hoje.replace(day=1)
         ultimo_dia_mes = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
         
-        # Usar valores da query string se existirem, senão usar padrões
-        context['data_inicio_padrao'] = self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d'))
-        context['data_fim_padrao'] = self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d'))
+        # Criar form de filtro com valores da query string ou padrões
+        initial_data = {
+            'data_inicio': self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d')),
+            'data_fim': self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d')),
+            'movimentacao': self.request.GET.get('movimentacao', 'todos'),
+            'busca': self.request.GET.get('busca', ''),
+        }
+        context['filtro_form'] = FiltroForm(initial=initial_data)
+        context['movimentacao_atual'] = initial_data['movimentacao']
         
         queryset = self.get_queryset()
-        
-        # Ordenação para o relatório sintético
-        order_by = self.request.GET.get('order_by', '-total_valor')
         
         # Agrupar por descrição e somar valores
         agrupado = queryset.values('descricao').annotate(
@@ -324,10 +333,9 @@ class TransacaoSinteticoView(TemplateView):
         )
         
         # Aplicar ordenação
-        agrupado = agrupado.order_by(order_by)
+        agrupado = agrupado.order_by(context['order_by'])
         
         context['agrupado'] = agrupado
-        context['order_by'] = order_by
         
         # Estatísticas gerais
         context['total_entradas'] = sum(

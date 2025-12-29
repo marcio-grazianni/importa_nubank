@@ -32,10 +32,23 @@
     
     <form method="post" style="margin-top: 30px;">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger" autofocus>Sim, excluir</button>
-        <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Cancelar</a>
+        <button type="submit" class="btn btn-danger">Sim, excluir</button>
+        <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary" id="btn-cancelar">Cancelar</a>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var btnCancelar = document.getElementById('btn-cancelar');
+        if (btnCancelar) {
+            setTimeout(function() {
+                btnCancelar.focus();
+            }, 100);
+        }
+    });
+</script>
 {% endblock %}
 
 

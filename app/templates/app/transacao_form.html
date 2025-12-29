@@ -52,14 +52,48 @@
 </div>
 {% endblock %}
 
+{% block extra_media %}
+<script>
+    // Garantir que jQuery está disponível antes de carregar form.media
+    if (typeof jQuery === 'undefined') {
+        document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\/script>');
+    }
+</script>
+{{ form.media }}
+{% endblock %}
+
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var firstInput = document.querySelector('input[type="date"], input[type="text"], input[type="number"], textarea, select');
-        if (firstInput) {
-            firstInput.focus();
+    (function() {
+        function focusFirstField() {
+            // Tentar focar no campo de data primeiro
+            if (typeof jQuery !== 'undefined' && jQuery.fn.datepicker) {
+                var dateInput = jQuery('.input-group input[name="data"]').first();
+                if (dateInput.length > 0) {
+                    setTimeout(function() {
+                        dateInput.focus();
+                    }, 100);
+                    return;
+                }
+            }
+            
+            // Fallback: focar no primeiro campo editável
+            var firstInput = document.querySelector('.form-control:not([readonly]), input[type="text"]:not([readonly]), input[type="number"], textarea, select');
+            if (firstInput) {
+                setTimeout(function() {
+                    firstInput.focus();
+                }, 100);
+            }
         }
-    });
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(focusFirstField, 800);
+            });
+        } else {
+            setTimeout(focusFirstField, 800);
+        }
+    })();
 </script>
 {% endblock %}
 

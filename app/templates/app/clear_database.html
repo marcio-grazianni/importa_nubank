@@ -36,12 +36,22 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var btnCancelar = document.getElementById('btn-cancelar');
-        if (btnCancelar) {
-            btnCancelar.focus();
+    (function() {
+        function focusCancelButton() {
+            var btnCancelar = document.getElementById('btn-cancelar');
+            if (btnCancelar) {
+                setTimeout(function() {
+                    btnCancelar.focus();
+                }, 100);
+            }
         }
-    });
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', focusCancelButton);
+        } else {
+            focusCancelButton();
+        }
+    })();
 </script>
 {% endblock %}
 

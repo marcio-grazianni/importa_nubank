@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "bootstrap_datepicker_plus",
 ]
 
 MIDDLEWARE = [
@@ -152,3 +153,27 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 # Permite rotas sem / no final
 APPEND_SLASH = False
+
+# Configuração de logging para suprimir logs 404 do Chrome DevTools
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'filters': {
+        'ignore_chrome_devtools': {
+            '()': 'app.middleware.IgnoreChromeDevToolsFilter',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['ignore_chrome_devtools'],
+        },
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+    },
+}
