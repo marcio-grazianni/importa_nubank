@@ -1,12 +1,12 @@
 import csv
-from datetime import datetime
-from django.shortcuts import render, redirect, get_object_or_404
+import calendar
+from datetime import datetime, date
+from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
 from django.urls import reverse_lazy
 from django.db import transaction
 from django.db.models import Sum, Count
-from django.http import JsonResponse
 from .models import TransacaoBancaria
 
 
@@ -159,28 +159,45 @@ class TransacaoListView(ListView):
     def get_queryset(self):
         queryset = super().get_queryset()
         
+        # Filtro por movimentação (padrão: 'saidas')
+        movimentacao = self.request.GET.get('movimentacao', 'saidas')
+        if movimentacao == 'entradas':
+            queryset = queryset.filter(valor__gt=0)
+        elif movimentacao == 'saidas':
+            queryset = queryset.filter(valor__lt=0)
+        # Se for 'todos', não aplica filtro
+        
         # Filtro por tipo
         tipo = self.request.GET.get('tipo')
         if tipo:
             queryset = queryset.filter(tipo_transacao=tipo)
         
-        # Filtro por data inicial
+        # Filtro por data inicial (usa padrão se não fornecido)
         data_inicio = self.request.GET.get('data_inicio')
-        if data_inicio:
-            try:
-                data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-                queryset = queryset.filter(data__gte=data_inicio)
-            except ValueError:
-                pass
+        if not data_inicio:
+            # Se não foi fornecido, usar primeiro dia do mês corrente
+            hoje = date.today()
+            data_inicio = hoje.replace(day=1).strftime('%Y-%m-%d')
         
-        # Filtro por data final
+        try:
+            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            queryset = queryset.filter(data__gte=data_inicio)
+        except ValueError:
+            pass
+        
+        # Filtro por data final (usa padrão se não fornecido)
         data_fim = self.request.GET.get('data_fim')
-        if data_fim:
-            try:
-                data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
-                queryset = queryset.filter(data__lte=data_fim)
-            except ValueError:
-                pass
+        if not data_fim:
+            # Se não foi fornecido, usar último dia do mês corrente
+            hoje = date.today()
+            ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
+            data_fim = hoje.replace(day=ultimo_dia).strftime('%Y-%m-%d')
+        
+        try:
+            data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            queryset = queryset.filter(data__lte=data_fim)
+        except ValueError:
+            pass
         
         # Busca por descrição
         busca = self.request.GET.get('busca')
@@ -192,6 +209,16 @@ class TransacaoListView(ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tipos_transacao'] = TransacaoBancaria.TIPO_CHOICES
+        context['movimentacao_atual'] = self.request.GET.get('movimentacao', 'saidas')
+        
+        # Datas padrão (primeiro e último dia do mês corrente)
+        hoje = date.today()
+        primeiro_dia_mes = hoje.replace(day=1)
+        ultimo_dia_mes = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
+        
+        # Usar valores da query string se existirem, senão usar padrões
+        context['data_inicio_padrao'] = self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d'))
+        context['data_fim_padrao'] = self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d'))
         
         # Estatísticas
         queryset = self.get_queryset()
@@ -261,28 +288,45 @@ class TransacaoSinteticoView(TemplateView):
         """Aplica os mesmos filtros da lista de transações"""
         queryset = TransacaoBancaria.objects.all()
         
+        # Filtro por movimentação (padrão: 'saidas')
+        movimentacao = self.request.GET.get('movimentacao', 'saidas')
+        if movimentacao == 'entradas':
+            queryset = queryset.filter(valor__gt=0)
+        elif movimentacao == 'saidas':
+            queryset = queryset.filter(valor__lt=0)
+        # Se for 'todos', não aplica filtro
+        
         # Filtro por tipo
         tipo = self.request.GET.get('tipo')
         if tipo:
             queryset = queryset.filter(tipo_transacao=tipo)
         
-        # Filtro por data inicial
+        # Filtro por data inicial (usa padrão se não fornecido)
         data_inicio = self.request.GET.get('data_inicio')
-        if data_inicio:
-            try:
-                data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-                queryset = queryset.filter(data__gte=data_inicio)
-            except ValueError:
-                pass
+        if not data_inicio:
+            # Se não foi fornecido, usar primeiro dia do mês corrente
+            hoje = date.today()
+            data_inicio = hoje.replace(day=1).strftime('%Y-%m-%d')
         
-        # Filtro por data final
+        try:
+            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
+            queryset = queryset.filter(data__gte=data_inicio)
+        except ValueError:
+            pass
+        
+        # Filtro por data final (usa padrão se não fornecido)
         data_fim = self.request.GET.get('data_fim')
-        if data_fim:
-            try:
-                data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
-                queryset = queryset.filter(data__lte=data_fim)
-            except ValueError:
-                pass
+        if not data_fim:
+            # Se não foi fornecido, usar último dia do mês corrente
+            hoje = date.today()
+            ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
+            data_fim = hoje.replace(day=ultimo_dia).strftime('%Y-%m-%d')
+        
+        try:
+            data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
+            queryset = queryset.filter(data__lte=data_fim)
+        except ValueError:
+            pass
         
         # Busca por descrição
         busca = self.request.GET.get('busca')
@@ -294,6 +338,16 @@ class TransacaoSinteticoView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['tipos_transacao'] = TransacaoBancaria.TIPO_CHOICES
+        context['movimentacao_atual'] = self.request.GET.get('movimentacao', 'saidas')
+        
+        # Datas padrão (primeiro e último dia do mês corrente)
+        hoje = date.today()
+        primeiro_dia_mes = hoje.replace(day=1)
+        ultimo_dia_mes = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
+        
+        # Usar valores da query string se existirem, senão usar padrões
+        context['data_inicio_padrao'] = self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d'))
+        context['data_fim_padrao'] = self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d'))
         
         queryset = self.get_queryset()
         
@@ -316,3 +370,40 @@ class TransacaoSinteticoView(TemplateView):
         context['total_grupos'] = agrupado.count()
         
         return context
+
+
+def clear_database(request):
+    """View para limpar todos os dados do banco de dados"""
+    if request.method == 'POST':
+        # Verificar confirmação
+        if request.POST.get('confirm') == 'yes':
+            try:
+                with transaction.atomic():
+                    total_transacoes = TransacaoBancaria.objects.count()
+                    
+                    if total_transacoes == 0:
+                        messages.info(request, 'O banco de dados já está vazio.')
+                        return redirect('app:transacao_list')
+                    
+                    # Excluir todos os registros
+                    TransacaoBancaria.objects.all().delete()
+                    
+                    messages.success(
+                        request,
+                        f'{total_transacoes} transação(ões) foram excluídas com sucesso! O banco de dados foi limpo.'
+                    )
+                    return redirect('app:transacao_list')
+                    
+            except Exception as e:
+                messages.error(request, f'Erro ao limpar o banco de dados: {str(e)}')
+                return redirect('app:clear_database')
+        else:
+            messages.warning(request, 'A limpeza do banco de dados foi cancelada.')
+            return redirect('app:transacao_list')
+    
+    # GET - mostrar página de confirmação
+    total_transacoes = TransacaoBancaria.objects.count()
+    context = {
+        'total_transacoes': total_transacoes,
+    }
+    return render(request, 'app/clear_database.html', context)

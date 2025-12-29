@@ -1,0 +1,36 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Limpar Banco de Dados - Extrato Bancário Nubank{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2>⚠️ Limpar Banco de Dados</h2>
+    <p style="margin: 20px 0; font-size: 16px;">
+        <strong>ATENÇÃO:</strong> Esta ação irá excluir <strong>TODOS</strong> os dados do banco de dados!
+    </p>
+    
+    <div style="background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 4px; padding: 15px; margin: 20px 0;">
+        <p style="margin: 0; color: #856404;">
+            <strong>Total de transações no banco:</strong> {{ total_transacoes }}
+        </p>
+    </div>
+    
+    <p style="margin: 20px 0; color: #721c24;">
+        Esta operação <strong>NÃO PODE</strong> ser desfeita. Todos os registros serão permanentemente excluídos.
+        A estrutura das tabelas será mantida, mas todos os dados serão perdidos.
+    </p>
+    
+    <form method="post" style="margin-top: 30px;">
+        {% csrf_token %}
+        <input type="hidden" name="confirm" value="yes">
+        
+        <div style="display: flex; gap: 15px; margin-top: 20px;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Tem CERTEZA que deseja excluir TODOS os dados? Esta ação não pode ser desfeita!');">
+                Sim, Limpar Banco de Dados
+            </button>
+            <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

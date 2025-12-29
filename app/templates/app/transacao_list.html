@@ -5,36 +5,45 @@
 {% block content %}
 <div class="card">
     <h2>📋 Lista de Transações</h2>
-    
+
     <!-- Filtros -->
     <form method="get" class="filters">
+        <div class="form-group">
+            <label for="movimentacao">Movimentação:</label>
+            <select id="movimentacao" name="movimentacao">
+                <option value="todos" {% if movimentacao_atual == 'todos' %}selected{% endif %}>Todos</option>
+                <option value="entradas" {% if movimentacao_atual == 'entradas' %}selected{% endif %}>Entradas</option>
+                <option value="saidas" {% if movimentacao_atual == 'saidas' or not movimentacao_atual %}selected{% endif %}>Saídas</option>
+            </select>
+        </div>
+
         <div class="form-group">
             <label for="busca">Buscar:</label>
             <input type="text" id="busca" name="busca" value="{{ request.GET.busca }}" placeholder="Buscar na descrição...">
         </div>
-        
+
         <div class="form-group">
             <label for="tipo">Tipo:</label>
             <select id="tipo" name="tipo">
                 <option value="">Todos</option>
                 {% for value, label in tipos_transacao %}
-                    <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
+                <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        
+
         <div class="form-group">
             <label for="data_inicio">Data Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" value="{{ request.GET.data_inicio }}">
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}">
         </div>
-        
+
         <div class="form-group">
             <label for="data_fim">Data Fim:</label>
-            <input type="date" id="data_fim" name="data_fim" value="{{ request.GET.data_fim }}">
+            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
         </div>
-        
+
         <div class="form-group" style="display: flex; align-items: flex-end;">
             <button type="submit" class="btn">Filtrar</button>
             <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary" style="margin-left: 10px;">Limpar</a>
@@ -67,7 +76,7 @@
         <h3>Transações ({{ page_obj.paginator.count }} total)</h3>
         <a href="{% url 'app:transacao_create' %}" class="btn">➕ Nova Transação</a>
     </div>
-    
+
     {% if transacoes %}
     <table>
         <thead>
@@ -99,22 +108,22 @@
             {% endfor %}
         </tbody>
     </table>
-    
+
     <!-- Paginação -->
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-            <a href="?page=1{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">&laquo; Primeira</a>
-            <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Anterior</a>
+        <a href="?page=1{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">&laquo; Primeira</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Anterior</a>
         {% endif %}
-        
+
         <span class="current">
             Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
         </span>
-        
+
         {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Próxima</a>
-            <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Última &raquo;</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Próxima</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Última &raquo;</a>
         {% endif %}
     </div>
     {% endif %}
@@ -123,5 +132,3 @@
     {% endif %}
 </div>
 {% endblock %}
-
-

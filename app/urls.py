@@ -8,6 +8,7 @@ urlpatterns = [
     path('sintetico/', views.TransacaoSinteticoView.as_view(), name='transacao_sintetico'),
     path('upload/', views.upload_csv, name='transacao_upload'),
     path('nova/', views.TransacaoCreateView.as_view(), name='transacao_create'),
+    path('limpar-banco/', views.clear_database, name='clear_database'),
     path('<int:pk>/', views.TransacaoDetailView.as_view(), name='transacao_detail'),
     path('<int:pk>/editar/', views.TransacaoUpdateView.as_view(), name='transacao_update'),
     path('<int:pk>/excluir/', views.TransacaoDeleteView.as_view(), name='transacao_delete'),

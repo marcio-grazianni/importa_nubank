@@ -8,36 +8,45 @@
     <p style="margin-top: 10px; color: #6c757d;">
         Transações agrupadas por descrição com valores somados
     </p>
-    
+
     <!-- Filtros -->
     <form method="get" class="filters">
+        <div class="form-group">
+            <label for="movimentacao">Movimentação:</label>
+            <select id="movimentacao" name="movimentacao">
+                <option value="todos" {% if movimentacao_atual == 'todos' %}selected{% endif %}>Todos</option>
+                <option value="entradas" {% if movimentacao_atual == 'entradas' %}selected{% endif %}>Entradas</option>
+                <option value="saidas" {% if movimentacao_atual == 'saidas' or not movimentacao_atual %}selected{% endif %}>Saídas</option>
+            </select>
+        </div>
+
         <div class="form-group">
             <label for="busca">Buscar:</label>
             <input type="text" id="busca" name="busca" value="{{ request.GET.busca }}" placeholder="Buscar na descrição...">
         </div>
-        
+
         <div class="form-group">
             <label for="tipo">Tipo:</label>
             <select id="tipo" name="tipo">
                 <option value="">Todos</option>
                 {% for value, label in tipos_transacao %}
-                    <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
-                        {{ label }}
-                    </option>
+                <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
+                    {{ label }}
+                </option>
                 {% endfor %}
             </select>
         </div>
-        
+
         <div class="form-group">
             <label for="data_inicio">Data Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" value="{{ request.GET.data_inicio }}">
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}">
         </div>
-        
+
         <div class="form-group">
             <label for="data_fim">Data Fim:</label>
-            <input type="date" id="data_fim" name="data_fim" value="{{ request.GET.data_fim }}">
+            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
         </div>
-        
+
         <div class="form-group" style="display: flex; align-items: flex-end;">
             <button type="submit" class="btn">Filtrar</button>
             <a href="{% url 'app:transacao_sintetico' %}" class="btn btn-secondary" style="margin-left: 10px;">Limpar</a>
@@ -70,7 +79,7 @@
         <h3>Grupos por Descrição ({{ total_grupos }} grupos)</h3>
         <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Ver Lista Completa</a>
     </div>
-    
+
     {% if agrupado %}
     <table>
         <thead>
@@ -106,4 +115,3 @@
     {% endif %}
 </div>
 {% endblock %}
-
