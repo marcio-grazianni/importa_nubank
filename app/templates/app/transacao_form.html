@@ -44,23 +44,23 @@
             {% endif %}
         </div>
         
-        <div class="form-group">
-            <label for="id_tipo_transacao">Tipo de Transação:</label>
-            {{ form.tipo_transacao }}
-            <small style="color: #6c757d; display: block; margin-top: 5px;">
-                O tipo será detectado automaticamente pela descrição se deixado como "Outro"
-            </small>
-            {% if form.tipo_transacao.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ form.tipo_transacao.errors }}</div>
-            {% endif %}
-        </div>
-        
         <div style="margin-top: 30px;">
             <button type="submit" class="btn btn-success">Salvar</button>
             <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Cancelar</a>
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var firstInput = document.querySelector('input[type="date"], input[type="text"], input[type="number"], textarea, select');
+        if (firstInput) {
+            firstInput.focus();
+        }
+    });
+</script>
 {% endblock %}
 
 

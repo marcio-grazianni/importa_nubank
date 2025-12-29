@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load formatters %}
 
 {% block title %}Relatório Sintético - Extrato Bancário{% endblock %}
 
@@ -11,6 +12,16 @@
 
     <!-- Filtros -->
     <form method="get" class="filters">
+        <div class="form-group">
+            <label for="data_inicio">Data Início:</label>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}" autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="data_fim">Data Fim:</label>
+            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
+        </div>
+
         <div class="form-group">
             <label for="movimentacao">Movimentação:</label>
             <select id="movimentacao" name="movimentacao">
@@ -25,28 +36,6 @@
             <input type="text" id="busca" name="busca" value="{{ request.GET.busca }}" placeholder="Buscar na descrição...">
         </div>
 
-        <div class="form-group">
-            <label for="tipo">Tipo:</label>
-            <select id="tipo" name="tipo">
-                <option value="">Todos</option>
-                {% for value, label in tipos_transacao %}
-                <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
-                    {{ label }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="data_inicio">Data Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}">
-        </div>
-
-        <div class="form-group">
-            <label for="data_fim">Data Fim:</label>
-            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
-        </div>
-
         <div class="form-group" style="display: flex; align-items: flex-end;">
             <button type="submit" class="btn">Filtrar</button>
             <a href="{% url 'app:transacao_sintetico' %}" class="btn btn-secondary" style="margin-left: 10px;">Limpar</a>
@@ -59,16 +48,16 @@
 <div class="stats">
     <div class="stat-card">
         <h3>Total de Entradas</h3>
-        <div class="value">R$ {{ total_entradas|floatformat:2 }}</div>
+        <div class="value">{{ total_entradas|currency }}</div>
     </div>
     <div class="stat-card">
         <h3>Total de Saídas</h3>
-        <div class="value">R$ {{ total_saidas|floatformat:2 }}</div>
+        <div class="value">{{ total_saidas|currency }}</div>
     </div>
     <div class="stat-card">
         <h3>Saldo</h3>
         <div class="value {% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
-            R$ {{ saldo|floatformat:2 }}
+            {{ saldo|currency }}
         </div>
     </div>
 </div>
@@ -81,12 +70,28 @@
     </div>
 
     {% if agrupado %}
+    <div class="table-wrapper">
     <table>
         <thead>
             <tr>
-                <th style="width: 60%;">Descrição</th>
-                <th style="text-align: right;">Quantidade</th>
-                <th style="text-align: right;">Valor Total</th>
+                <th style="width: 60%;">
+                    <a href="?{% url_with_order 'descricao' %}" style="text-decoration: none; color: inherit;">
+                        Descrição
+                        {% if order_by == 'descricao' %} ↑{% elif order_by == '-descricao' %} ↓{% endif %}
+                    </a>
+                </th>
+                <th style="text-align: right;">
+                    <a href="?{% url_with_order 'quantidade' %}" style="text-decoration: none; color: inherit;">
+                        Quantidade
+                        {% if order_by == 'quantidade' %} ↑{% elif order_by == '-quantidade' %} ↓{% endif %}
+                    </a>
+                </th>
+                <th style="text-align: right;">
+                    <a href="?{% url_with_order 'total_valor' %}" style="text-decoration: none; color: inherit;">
+                        Valor Total
+                        {% if order_by == 'total_valor' %} ↑{% elif order_by == '-total_valor' %} ↓{% endif %}
+                    </a>
+                </th>
             </tr>
         </thead>
         <tbody>
@@ -95,7 +100,7 @@
                 <td>{{ item.descricao }}</td>
                 <td style="text-align: right;">{{ item.quantidade }}</td>
                 <td style="text-align: right;" class="{% if item.total_valor >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
-                    R$ {{ item.total_valor|floatformat:2 }}
+                    {{ item.total_valor|currency }}
                 </td>
             </tr>
             {% endfor %}
@@ -105,11 +110,12 @@
                 <td>Total Geral</td>
                 <td style="text-align: right;">{{ total_grupos }} grupos</td>
                 <td style="text-align: right;" class="{% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
-                    R$ {{ saldo|floatformat:2 }}
+                    {{ saldo|currency }}
                 </td>
             </tr>
         </tfoot>
     </table>
+    </div>
     {% else %}
     <p>Nenhuma transação encontrada com os filtros aplicados.</p>
     {% endif %}

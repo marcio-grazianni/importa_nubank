@@ -5,8 +5,8 @@ from .models import TransacaoBancaria
 
 @admin.register(TransacaoBancaria)
 class TransacaoBancariaAdmin(admin.ModelAdmin):
-    list_display = ['data', 'valor_formatado', 'tipo_transacao', 'descricao_resumida', 'criado_em']
-    list_filter = ['tipo_transacao', 'data', 'criado_em']
+    list_display = ['data', 'valor_formatado', 'descricao_resumida', 'criado_em']
+    list_filter = ['data', 'criado_em']
     search_fields = ['descricao', 'identificador']
     date_hierarchy = 'data'
     ordering = ['-data', '-criado_em']
@@ -14,7 +14,7 @@ class TransacaoBancariaAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Informações Principais', {
-            'fields': ('data', 'valor', 'identificador', 'descricao', 'tipo_transacao')
+            'fields': ('data', 'valor', 'identificador', 'descricao')
         }),
         ('Metadados', {
             'fields': ('criado_em', 'atualizado_em'),

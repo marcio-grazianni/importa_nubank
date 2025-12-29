@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load formatters %}
 
 {% block title %}Detalhes da Transação - Extrato Bancário{% endblock %}
 
@@ -14,16 +15,12 @@
         <tr>
             <th>Valor:</th>
             <td class="{% if transacao.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}">
-                R$ {{ transacao.valor|floatformat:2 }}
+                {{ transacao.valor|currency }}
             </td>
         </tr>
         <tr>
             <th>Identificador:</th>
             <td>{{ transacao.identificador }}</td>
-        </tr>
-        <tr>
-            <th>Tipo de Transação:</th>
-            <td>{{ transacao.get_tipo_transacao_display }}</td>
         </tr>
         <tr>
             <th>Descrição:</th>

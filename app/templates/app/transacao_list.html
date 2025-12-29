@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load formatters %}
 
 {% block title %}Lista de Transações - Extrato Bancário{% endblock %}
 
@@ -8,6 +9,16 @@
 
     <!-- Filtros -->
     <form method="get" class="filters">
+        <div class="form-group">
+            <label for="data_inicio">Data Início:</label>
+            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}" autofocus>
+        </div>
+
+        <div class="form-group">
+            <label for="data_fim">Data Fim:</label>
+            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
+        </div>
+
         <div class="form-group">
             <label for="movimentacao">Movimentação:</label>
             <select id="movimentacao" name="movimentacao">
@@ -22,28 +33,6 @@
             <input type="text" id="busca" name="busca" value="{{ request.GET.busca }}" placeholder="Buscar na descrição...">
         </div>
 
-        <div class="form-group">
-            <label for="tipo">Tipo:</label>
-            <select id="tipo" name="tipo">
-                <option value="">Todos</option>
-                {% for value, label in tipos_transacao %}
-                <option value="{{ value }}" {% if request.GET.tipo == value %}selected{% endif %}>
-                    {{ label }}
-                </option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-group">
-            <label for="data_inicio">Data Início:</label>
-            <input type="date" id="data_inicio" name="data_inicio" value="{{ data_inicio_padrao }}">
-        </div>
-
-        <div class="form-group">
-            <label for="data_fim">Data Fim:</label>
-            <input type="date" id="data_fim" name="data_fim" value="{{ data_fim_padrao }}">
-        </div>
-
         <div class="form-group" style="display: flex; align-items: flex-end;">
             <button type="submit" class="btn">Filtrar</button>
             <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary" style="margin-left: 10px;">Limpar</a>
@@ -56,16 +45,16 @@
 <div class="stats">
     <div class="stat-card">
         <h3>Total de Entradas</h3>
-        <div class="value">R$ {{ total_entradas|floatformat:2 }}</div>
+        <div class="value">{{ total_entradas|currency }}</div>
     </div>
     <div class="stat-card">
         <h3>Total de Saídas</h3>
-        <div class="value">R$ {{ total_saidas|floatformat:2 }}</div>
+        <div class="value">{{ total_saidas|currency }}</div>
     </div>
     <div class="stat-card">
         <h3>Saldo</h3>
         <div class="value {% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
-            R$ {{ saldo|floatformat:2 }}
+            {{ saldo|currency }}
         </div>
     </div>
 </div>
@@ -78,13 +67,28 @@
     </div>
 
     {% if transacoes %}
+    <div class="table-wrapper">
     <table>
         <thead>
             <tr>
-                <th>Data</th>
-                <th>Valor</th>
-                <th>Tipo</th>
-                <th>Descrição</th>
+                <th>
+                    <a href="?{% url_with_order 'data' %}" style="text-decoration: none; color: inherit;">
+                        Data
+                        {% if order_by == 'data' %} ↑{% elif order_by == '-data' %} ↓{% endif %}
+                    </a>
+                </th>
+                <th style="min-width: 140px;">
+                    <a href="?{% url_with_order 'valor' %}" style="text-decoration: none; color: inherit;">
+                        Valor
+                        {% if order_by == 'valor' %} ↑{% elif order_by == '-valor' %} ↓{% endif %}
+                    </a>
+                </th>
+                <th>
+                    <a href="?{% url_with_order 'descricao' %}" style="text-decoration: none; color: inherit;">
+                        Descrição
+                        {% if order_by == 'descricao' %} ↑{% elif order_by == '-descricao' %} ↓{% endif %}
+                    </a>
+                </th>
                 <th>Ações</th>
             </tr>
         </thead>
@@ -92,10 +96,9 @@
             {% for transacao in transacoes %}
             <tr>
                 <td>{{ transacao.data|date:"d/m/Y" }}</td>
-                <td class="{% if transacao.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}">
-                    R$ {{ transacao.valor|floatformat:2 }}
+                <td class="{% if transacao.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}" style="min-width: 140px; white-space: nowrap;">
+                    {{ transacao.valor|currency }}
                 </td>
-                <td>{{ transacao.get_tipo_transacao_display }}</td>
                 <td>{{ transacao.descricao|truncatewords:15 }}</td>
                 <td>
                     <div class="actions">
@@ -108,13 +111,14 @@
             {% endfor %}
         </tbody>
     </table>
+    </div>
 
     <!-- Paginação -->
     {% if page_obj.has_other_pages %}
     <div class="pagination">
         {% if page_obj.has_previous %}
-        <a href="?page=1{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">&laquo; Primeira</a>
-        <a href="?page={{ page_obj.previous_page_number }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Anterior</a>
+        <a href="?page=1{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">&laquo; Primeira</a>
+        <a href="?page={{ page_obj.previous_page_number }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Anterior</a>
         {% endif %}
 
         <span class="current">
@@ -122,8 +126,8 @@
         </span>
 
         {% if page_obj.has_next %}
-        <a href="?page={{ page_obj.next_page_number }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Próxima</a>
-        <a href="?page={{ page_obj.paginator.num_pages }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}">Última &raquo;</a>
+        <a href="?page={{ page_obj.next_page_number }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">Próxima</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}{% if movimentacao_atual %}&movimentacao={{ movimentacao_atual }}{% endif %}{% if request.GET.busca %}&busca={{ request.GET.busca }}{% endif %}{% if request.GET.data_inicio %}&data_inicio={{ request.GET.data_inicio }}{% endif %}{% if request.GET.data_fim %}&data_fim={{ request.GET.data_fim }}{% endif %}{% if order_by %}&order_by={{ order_by }}{% endif %}">Última &raquo;</a>
         {% endif %}
     </div>
     {% endif %}

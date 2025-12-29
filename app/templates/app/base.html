@@ -121,6 +121,17 @@
             color: #495057;
         }
         
+        th a {
+            display: block;
+            width: 100%;
+            cursor: pointer;
+            user-select: none;
+        }
+        
+        th a:hover {
+            color: #8A05BE;
+        }
+        
         tr:hover {
             background-color: #f8f9fa;
         }
@@ -267,6 +278,178 @@
         .actions button {
             padding: 6px 12px;
             font-size: 12px;
+        }
+        
+        /* Media Queries para Responsividade */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            header {
+                padding: 15px 0;
+                margin-bottom: 20px;
+            }
+            
+            header h1 {
+                font-size: 20px;
+            }
+            
+            nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+            
+            nav a {
+                margin-right: 0;
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+            
+            .card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+            
+            .filters {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .filters .form-group {
+                min-width: 100%;
+                margin-bottom: 15px;
+            }
+            
+            .filters .form-group[style*="display: flex"] {
+                flex-direction: column;
+            }
+            
+            .filters .form-group[style*="display: flex"] .btn {
+                width: 100%;
+                margin-left: 0 !important;
+                margin-bottom: 10px;
+            }
+            
+            .stats {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .stat-card {
+                padding: 15px;
+            }
+            
+            .stat-card .value {
+                font-size: 24px;
+            }
+            
+            /* Wrapper para tabelas com scroll horizontal */
+            .table-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                margin: 20px -15px;
+                padding: 0 15px;
+            }
+            
+            /* Tabelas dentro de wrapper (listas) */
+            .table-wrapper table {
+                width: 100%;
+                min-width: 600px;
+            }
+            
+            /* Tabelas de detalhes (sem wrapper) */
+            table:not(.table-wrapper table) {
+                width: 100%;
+            }
+            
+            table:not(.table-wrapper table) th {
+                width: auto;
+                min-width: 120px;
+            }
+            
+            th, td {
+                padding: 8px;
+                font-size: 13px;
+            }
+            
+            /* Ajustar elementos com display flex inline que precisam ser coluna */
+            .card > [style*="display: flex"]:not(.actions):not(.pagination) {
+                flex-direction: column !important;
+            }
+            
+            .card > [style*="display: flex"]:not(.actions):not(.pagination) > * {
+                width: 100% !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+            }
+            
+            .actions {
+                flex-direction: column;
+                gap: 5px;
+            }
+            
+            .actions a,
+            .actions button {
+                width: 100%;
+                text-align: center;
+                padding: 8px 12px;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+            
+            .pagination a,
+            .pagination span {
+                padding: 6px 10px;
+                font-size: 12px;
+            }
+            
+            .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                text-align: center;
+            }
+            
+            .btn:last-child {
+                margin-bottom: 0;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            header h1 {
+                font-size: 18px;
+            }
+            
+            nav a {
+                font-size: 12px;
+                padding: 5px 10px;
+            }
+            
+            .card {
+                padding: 12px;
+            }
+            
+            th, td {
+                padding: 6px;
+                font-size: 12px;
+            }
+            
+            .stat-card .value {
+                font-size: 20px;
+            }
+            
+            input[type="text"],
+            input[type="date"],
+            input[type="number"],
+            input[type="file"],
+            select,
+            textarea {
+                font-size: 16px; /* Evita zoom no iOS */
+            }
         }
     </style>
     {% block extra_css %}{% endblock %}

@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load formatters %}
 
 {% block title %}Excluir Transação - Extrato Bancário{% endblock %}
 
@@ -19,7 +20,7 @@
             <tr>
                 <th>Valor:</th>
                 <td class="{% if object.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}">
-                    R$ {{ object.valor|floatformat:2 }}
+                    {{ object.valor|currency }}
                 </td>
             </tr>
             <tr>
@@ -31,7 +32,7 @@
     
     <form method="post" style="margin-top: 30px;">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Sim, excluir</button>
+        <button type="submit" class="btn btn-danger" autofocus>Sim, excluir</button>
         <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Cancelar</a>
     </form>
 </div>

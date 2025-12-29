@@ -10,28 +10,6 @@ from django.db.models import Sum, Count
 from .models import TransacaoBancaria
 
 
-def detectar_tipo_transacao(descricao):
-    """Detecta o tipo de transação baseado na descrição"""
-    descricao_lower = descricao.lower()
-    
-    if 'transferência recebida pelo pix' in descricao_lower:
-        return 'transferencia_pix_recebida'
-    elif 'transferência enviada pelo pix' in descricao_lower:
-        return 'transferencia_pix_enviada'
-    elif 'compra no débito' in descricao_lower:
-        return 'compra_debito'
-    elif 'recarga de celular' in descricao_lower:
-        return 'recarga_celular'
-    elif 'pagamento de fatura' in descricao_lower:
-        return 'pagamento_fatura'
-    elif 'pagamento de boleto' in descricao_lower:
-        return 'pagamento_boleto'
-    elif 'débito em conta' in descricao_lower:
-        return 'debito_conta'
-    else:
-        return 'outro'
-
-
 def upload_csv(request):
     """View para upload e importação de arquivo CSV"""
     if request.method == 'POST':
@@ -98,16 +76,12 @@ def upload_csv(request):
                             transacoes_ignoradas += 1
                             continue
                         
-                        # Detectar tipo de transação
-                        tipo_transacao = detectar_tipo_transacao(descricao)
-                        
                         # Criar nova transação
                         TransacaoBancaria.objects.create(
                             identificador=identificador,
                             data=data,
                             valor=valor,
                             descricao=descricao,
-                            tipo_transacao=tipo_transacao,
                         )
                         
                         transacoes_criadas += 1
@@ -167,11 +141,6 @@ class TransacaoListView(ListView):
             queryset = queryset.filter(valor__lt=0)
         # Se for 'todos', não aplica filtro
         
-        # Filtro por tipo
-        tipo = self.request.GET.get('tipo')
-        if tipo:
-            queryset = queryset.filter(tipo_transacao=tipo)
-        
         # Filtro por data inicial (usa padrão se não fornecido)
         data_inicio = self.request.GET.get('data_inicio')
         if not data_inicio:
@@ -204,12 +173,17 @@ class TransacaoListView(ListView):
         if busca:
             queryset = queryset.filter(descricao__icontains=busca)
         
+        # Ordenação
+        order_by = self.request.GET.get('order_by', '-data')
+        if order_by:
+            queryset = queryset.order_by(order_by)
+        
         return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tipos_transacao'] = TransacaoBancaria.TIPO_CHOICES
         context['movimentacao_atual'] = self.request.GET.get('movimentacao', 'saidas')
+        context['order_by'] = self.request.GET.get('order_by', '-data')
         
         # Datas padrão (primeiro e último dia do mês corrente)
         hoje = date.today()
@@ -237,15 +211,10 @@ class TransacaoCreateView(CreateView):
     """View para criar nova transação"""
     model = TransacaoBancaria
     template_name = 'app/transacao_form.html'
-    fields = ['data', 'valor', 'identificador', 'descricao', 'tipo_transacao']
+    fields = ['data', 'valor', 'identificador', 'descricao']
     success_url = reverse_lazy('app:transacao_list')
     
     def form_valid(self, form):
-        # Detectar tipo de transação se não foi informado
-        if not form.cleaned_data.get('tipo_transacao') or form.cleaned_data['tipo_transacao'] == 'outro':
-            tipo = detectar_tipo_transacao(form.cleaned_data['descricao'])
-            form.instance.tipo_transacao = tipo
-        
         messages.success(self.request, 'Transação criada com sucesso!')
         return super().form_valid(form)
 
@@ -254,7 +223,7 @@ class TransacaoUpdateView(UpdateView):
     """View para editar transação existente"""
     model = TransacaoBancaria
     template_name = 'app/transacao_form.html'
-    fields = ['data', 'valor', 'identificador', 'descricao', 'tipo_transacao']
+    fields = ['data', 'valor', 'identificador', 'descricao']
     success_url = reverse_lazy('app:transacao_list')
     
     def form_valid(self, form):
@@ -296,11 +265,6 @@ class TransacaoSinteticoView(TemplateView):
             queryset = queryset.filter(valor__lt=0)
         # Se for 'todos', não aplica filtro
         
-        # Filtro por tipo
-        tipo = self.request.GET.get('tipo')
-        if tipo:
-            queryset = queryset.filter(tipo_transacao=tipo)
-        
         # Filtro por data inicial (usa padrão se não fornecido)
         data_inicio = self.request.GET.get('data_inicio')
         if not data_inicio:
@@ -337,7 +301,6 @@ class TransacaoSinteticoView(TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['tipos_transacao'] = TransacaoBancaria.TIPO_CHOICES
         context['movimentacao_atual'] = self.request.GET.get('movimentacao', 'saidas')
         
         # Datas padrão (primeiro e último dia do mês corrente)
@@ -351,13 +314,20 @@ class TransacaoSinteticoView(TemplateView):
         
         queryset = self.get_queryset()
         
+        # Ordenação para o relatório sintético
+        order_by = self.request.GET.get('order_by', '-total_valor')
+        
         # Agrupar por descrição e somar valores
         agrupado = queryset.values('descricao').annotate(
             total_valor=Sum('valor'),
             quantidade=Count('id')
-        ).order_by('-total_valor')
+        )
+        
+        # Aplicar ordenação
+        agrupado = agrupado.order_by(order_by)
         
         context['agrupado'] = agrupado
+        context['order_by'] = order_by
         
         # Estatísticas gerais
         context['total_entradas'] = sum(
