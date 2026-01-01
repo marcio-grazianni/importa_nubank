@@ -36,15 +36,14 @@
 
 {% block extra_js %}
 <script>
+    // Para inputs de arquivo, alguns navegadores bloqueiam o foco por segurança
+    // Então apenas destacamos o label
     document.addEventListener('DOMContentLoaded', function() {
         var fileInput = document.getElementById('csv_file');
         if (fileInput) {
-            // Tentar focar no input de arquivo
-            // Nota: Alguns navegadores podem bloquear isso por segurança
             try {
                 fileInput.focus();
             } catch(e) {
-                // Se não conseguir focar, pelo menos destacar o label
                 var label = document.querySelector('label[for="csv_file"]');
                 if (label) {
                     label.style.color = '#007bff';

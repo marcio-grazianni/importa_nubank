@@ -54,10 +54,7 @@
 
 {% block extra_media %}
 <script>
-    // Garantir que jQuery está disponível antes de carregar form.media
-    if (typeof jQuery === 'undefined') {
-        document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\/script>');
-    }
+    carregarJQuerySeNecessario();
 </script>
 {{ form.media }}
 {% endblock %}
@@ -65,33 +62,44 @@
 {% block extra_js %}
 <script>
     (function() {
-        function focusFirstField() {
-            // Tentar focar no campo de data primeiro
-            if (typeof jQuery !== 'undefined' && jQuery.fn.datepicker) {
-                var dateInput = jQuery('.input-group input[name="data"]').first();
-                if (dateInput.length > 0) {
-                    setTimeout(function() {
-                        dateInput.focus();
-                    }, 100);
-                    return;
-                }
+        // Função para gerar UUID v4
+        function gerarUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0;
+                var v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+        
+        // Gerar UUID automaticamente apenas para nova transação (quando não há object)
+        {% if not object %}
+        function preencherUUID() {
+            var campoIdentificador = document.getElementById('id_identificador');
+            if (campoIdentificador && !campoIdentificador.value) {
+                campoIdentificador.value = gerarUUID();
             }
-            
-            // Fallback: focar no primeiro campo editável
-            var firstInput = document.querySelector('.form-control:not([readonly]), input[type="text"]:not([readonly]), input[type="number"], textarea, select');
-            if (firstInput) {
-                setTimeout(function() {
-                    firstInput.focus();
-                }, 100);
+        }
+        {% endif %}
+        
+        function focarCampoValor() {
+            var campoValor = document.getElementById('id_valor');
+            if (campoValor) {
+                campoValor.focus();
             }
         }
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(focusFirstField, 100);
+                {% if not object %}
+                preencherUUID();
+                {% endif %}
+                setTimeout(focarCampoValor, 100);
             });
         } else {
-            setTimeout(focusFirstField, 100);
+            {% if not object %}
+            preencherUUID();
+            {% endif %}
+            setTimeout(focarCampoValor, 100);
         }
     })();
 </script>

@@ -36,22 +36,7 @@
 
 {% block extra_js %}
 <script>
-    (function() {
-        function focusCancelButton() {
-            var btnCancelar = document.getElementById('btn-cancelar');
-            if (btnCancelar) {
-                setTimeout(function() {
-                    btnCancelar.focus();
-                }, 100);
-            }
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', focusCancelButton);
-        } else {
-            focusCancelButton();
-        }
-    })();
+    focarElementoPorId('btn-cancelar');
 </script>
 {% endblock %}
 

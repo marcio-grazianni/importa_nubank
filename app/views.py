@@ -1,6 +1,5 @@
 import csv
-import calendar
-from datetime import datetime, date
+from datetime import date
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, TemplateView
@@ -9,6 +8,12 @@ from django.db import transaction
 from django.db.models import Sum, Count
 from .models import TransacaoBancaria
 from .forms import TransacaoForm, FiltroForm
+from .funcoes import (
+    aplicar_filtros_transacoes,
+    calcular_estatisticas,
+    get_initial_data_filtro,
+    processar_linha_csv,
+)
 
 
 def upload_csv(request):
@@ -35,61 +40,15 @@ def upload_csv(request):
             
             with transaction.atomic():
                 for row_num, row in enumerate(csv_reader, start=2):
-                    try:
-                        # Parse da data (formato DD/MM/YYYY)
-                        data_str = row.get('Data', '').strip()
-                        if not data_str:
-                            erros.append(f'Linha {row_num}: Data vazia')
-                            continue
-                        
-                        try:
-                            data = datetime.strptime(data_str, '%d/%m/%Y').date()
-                        except ValueError:
-                            erros.append(f'Linha {row_num}: Data inválida: {data_str}')
-                            continue
-                        
-                        # Parse do valor
-                        valor_str = row.get('Valor', '').strip()
-                        if not valor_str:
-                            erros.append(f'Linha {row_num}: Valor vazio')
-                            continue
-                        
-                        try:
-                            valor = float(valor_str.replace(',', '.'))
-                        except ValueError:
-                            erros.append(f'Linha {row_num}: Valor inválido: {valor_str}')
-                            continue
-                        
-                        # Identificador
-                        identificador = row.get('Identificador', '').strip()
-                        if not identificador:
-                            erros.append(f'Linha {row_num}: Identificador vazio')
-                            continue
-                        
-                        # Descrição
-                        descricao = row.get('Descrição', '').strip()
-                        if not descricao:
-                            erros.append(f'Linha {row_num}: Descrição vazia')
-                            continue
-                        
-                        # Verificar se o identificador já existe (evitar duplicatas)
-                        if TransacaoBancaria.objects.filter(identificador=identificador).exists():
-                            transacoes_ignoradas += 1
-                            continue
-                        
-                        # Criar nova transação
-                        TransacaoBancaria.objects.create(
-                            identificador=identificador,
-                            data=data,
-                            valor=valor,
-                            descricao=descricao,
-                        )
-                        
-                        transacoes_criadas += 1
+                    transacao, erro = processar_linha_csv(row, row_num)
                     
-                    except Exception as e:
-                        erros.append(f'Linha {row_num}: Erro ao processar - {str(e)}')
-                        continue
+                    if erro:
+                        erros.append(erro)
+                    elif transacao is None:
+                        # None indica que a transação já existe (deve ser ignorada)
+                        transacoes_ignoradas += 1
+                    else:
+                        transacoes_criadas += 1
             
             # Mensagens de resultado
             if transacoes_criadas > 0:
@@ -133,46 +92,7 @@ class TransacaoListView(ListView):
     
     def get_queryset(self):
         queryset = super().get_queryset()
-        
-        # Filtro por movimentação (padrão: 'todos')
-        movimentacao = self.request.GET.get('movimentacao', 'todos')
-        if movimentacao == 'entradas':
-            queryset = queryset.filter(valor__gt=0)
-        elif movimentacao == 'saidas':
-            queryset = queryset.filter(valor__lt=0)
-        # Se for 'todos', não aplica filtro
-        
-        # Filtro por data inicial (usa padrão se não fornecido)
-        data_inicio = self.request.GET.get('data_inicio')
-        if not data_inicio:
-            # Se não foi fornecido, usar primeiro dia do mês corrente
-            hoje = date.today()
-            data_inicio = hoje.replace(day=1).strftime('%Y-%m-%d')
-        
-        try:
-            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-            queryset = queryset.filter(data__gte=data_inicio)
-        except ValueError:
-            pass
-        
-        # Filtro por data final (usa padrão se não fornecido)
-        data_fim = self.request.GET.get('data_fim')
-        if not data_fim:
-            # Se não foi fornecido, usar último dia do mês corrente
-            hoje = date.today()
-            ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
-            data_fim = hoje.replace(day=ultimo_dia).strftime('%Y-%m-%d')
-        
-        try:
-            data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
-            queryset = queryset.filter(data__lte=data_fim)
-        except ValueError:
-            pass
-        
-        # Busca por descrição
-        busca = self.request.GET.get('busca')
-        if busca:
-            queryset = queryset.filter(descricao__icontains=busca)
+        queryset = aplicar_filtros_transacoes(queryset, self.request.GET)
         
         # Ordenação
         order_by = self.request.GET.get('order_by', '-data')
@@ -185,30 +105,15 @@ class TransacaoListView(ListView):
         context = super().get_context_data(**kwargs)
         context['order_by'] = self.request.GET.get('order_by', '-data')
         
-        # Datas padrão (primeiro e último dia do mês corrente)
-        hoje = date.today()
-        primeiro_dia_mes = hoje.replace(day=1)
-        ultimo_dia_mes = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
-        
         # Criar form de filtro com valores da query string ou padrões
-        initial_data = {
-            'data_inicio': self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d')),
-            'data_fim': self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d')),
-            'movimentacao': self.request.GET.get('movimentacao', 'todos'),
-            'busca': self.request.GET.get('busca', ''),
-        }
+        initial_data = get_initial_data_filtro(self.request.GET)
         context['filtro_form'] = FiltroForm(initial=initial_data)
         context['movimentacao_atual'] = initial_data['movimentacao']
         
         # Estatísticas
         queryset = self.get_queryset()
-        context['total_entradas'] = sum(
-            t.valor for t in queryset if t.is_entrada()
-        )
-        context['total_saidas'] = abs(sum(
-            t.valor for t in queryset if t.is_saida()
-        ))
-        context['saldo'] = sum(t.valor for t in queryset)
+        stats = calcular_estatisticas(queryset)
+        context.update(stats)
         
         return context
 
@@ -219,6 +124,12 @@ class TransacaoCreateView(CreateView):
     form_class = TransacaoForm
     template_name = 'app/transacao_form.html'
     success_url = reverse_lazy('app:transacao_list')
+    
+    def get_initial(self):
+        """Define valores iniciais para o formulário"""
+        return {
+            'data': date.today(),
+        }
     
     def form_valid(self, form):
         messages.success(self.request, 'Transação criada com sucesso!')
@@ -262,65 +173,15 @@ class TransacaoSinteticoView(TemplateView):
     def get_queryset(self):
         """Aplica os mesmos filtros da lista de transações"""
         queryset = TransacaoBancaria.objects.all()
-        
-        # Filtro por movimentação (padrão: 'todos')
-        movimentacao = self.request.GET.get('movimentacao', 'todos')
-        if movimentacao == 'entradas':
-            queryset = queryset.filter(valor__gt=0)
-        elif movimentacao == 'saidas':
-            queryset = queryset.filter(valor__lt=0)
-        # Se for 'todos', não aplica filtro
-        
-        # Filtro por data inicial (usa padrão se não fornecido)
-        data_inicio = self.request.GET.get('data_inicio')
-        if not data_inicio:
-            # Se não foi fornecido, usar primeiro dia do mês corrente
-            hoje = date.today()
-            data_inicio = hoje.replace(day=1).strftime('%Y-%m-%d')
-        
-        try:
-            data_inicio = datetime.strptime(data_inicio, '%Y-%m-%d').date()
-            queryset = queryset.filter(data__gte=data_inicio)
-        except ValueError:
-            pass
-        
-        # Filtro por data final (usa padrão se não fornecido)
-        data_fim = self.request.GET.get('data_fim')
-        if not data_fim:
-            # Se não foi fornecido, usar último dia do mês corrente
-            hoje = date.today()
-            ultimo_dia = calendar.monthrange(hoje.year, hoje.month)[1]
-            data_fim = hoje.replace(day=ultimo_dia).strftime('%Y-%m-%d')
-        
-        try:
-            data_fim = datetime.strptime(data_fim, '%Y-%m-%d').date()
-            queryset = queryset.filter(data__lte=data_fim)
-        except ValueError:
-            pass
-        
-        # Busca por descrição
-        busca = self.request.GET.get('busca')
-        if busca:
-            queryset = queryset.filter(descricao__icontains=busca)
-        
+        queryset = aplicar_filtros_transacoes(queryset, self.request.GET)
         return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['order_by'] = self.request.GET.get('order_by', '-total_valor')
         
-        # Datas padrão (primeiro e último dia do mês corrente)
-        hoje = date.today()
-        primeiro_dia_mes = hoje.replace(day=1)
-        ultimo_dia_mes = hoje.replace(day=calendar.monthrange(hoje.year, hoje.month)[1])
-        
         # Criar form de filtro com valores da query string ou padrões
-        initial_data = {
-            'data_inicio': self.request.GET.get('data_inicio', primeiro_dia_mes.strftime('%Y-%m-%d')),
-            'data_fim': self.request.GET.get('data_fim', ultimo_dia_mes.strftime('%Y-%m-%d')),
-            'movimentacao': self.request.GET.get('movimentacao', 'todos'),
-            'busca': self.request.GET.get('busca', ''),
-        }
+        initial_data = get_initial_data_filtro(self.request.GET)
         context['filtro_form'] = FiltroForm(initial=initial_data)
         context['movimentacao_atual'] = initial_data['movimentacao']
         
@@ -336,16 +197,11 @@ class TransacaoSinteticoView(TemplateView):
         agrupado = agrupado.order_by(context['order_by'])
         
         context['agrupado'] = agrupado
+        context['total_grupos'] = agrupado.count()
         
         # Estatísticas gerais
-        context['total_entradas'] = sum(
-            t.valor for t in queryset if t.is_entrada()
-        )
-        context['total_saidas'] = abs(sum(
-            t.valor for t in queryset if t.is_saida()
-        ))
-        context['saldo'] = sum(t.valor for t in queryset)
-        context['total_grupos'] = agrupado.count()
+        stats = calcular_estatisticas(queryset)
+        context.update(stats)
         
         return context
 

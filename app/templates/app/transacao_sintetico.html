@@ -53,10 +53,7 @@
 
 {% block extra_media %}
 <script>
-    // Garantir que jQuery está disponível antes de carregar form.media
-    if (typeof jQuery === 'undefined') {
-        document.write('<script src="https://code.jquery.com/jquery-3.7.1.min.js"><\/script>');
-    }
+    carregarJQuerySeNecessario();
 </script>
 {{ filtro_form.media }}
 {% endblock %}
@@ -64,33 +61,19 @@
 {% block extra_js %}
 <script>
     (function() {
-        function focusFirstField() {
-            // Tentar focar no campo de data primeiro
-            if (typeof jQuery !== 'undefined' && jQuery.fn.datepicker) {
-                var dateInput = jQuery('.input-group input[name="data_inicio"]').first();
-                if (dateInput.length > 0) {
-                    setTimeout(function() {
-                        dateInput.focus();
-                    }, 100);
-                    return;
-                }
-            }
-            
-            // Fallback: focar no primeiro campo editável
-            var firstInput = document.querySelector('.form-control:not([readonly]), input[type="text"]:not([readonly]), input[type="number"], textarea, select');
-            if (firstInput) {
-                setTimeout(function() {
-                    firstInput.focus();
-                }, 100);
+        function focarCampoBusca() {
+            var campoBusca = document.getElementById('id_busca');
+            if (campoBusca) {
+                campoBusca.focus();
             }
         }
         
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(focusFirstField, 100);
+                setTimeout(focarCampoBusca, 100);
             });
         } else {
-            setTimeout(focusFirstField, 100);
+            setTimeout(focarCampoBusca, 100);
         }
     })();
 </script>

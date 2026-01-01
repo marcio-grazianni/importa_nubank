@@ -40,14 +40,7 @@
 
 {% block extra_js %}
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        var btnCancelar = document.getElementById('btn-cancelar');
-        if (btnCancelar) {
-            setTimeout(function() {
-                btnCancelar.focus();
-            }, 100);
-        }
-    });
+    focarElementoPorId('btn-cancelar');
 </script>
 {% endblock %}
 

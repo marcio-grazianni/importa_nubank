@@ -3,14 +3,19 @@ from django import template
 register = template.Library()
 
 
-@register.filter(name='currency')
-def currency(value):
+def formatar_valor_moeda(value, incluir_simbolo=True):
     """
     Formata um valor numérico como moeda brasileira com separador de milhar.
-    Exemplo: 1234.56 -> R$ 1.234,56
+    
+    Args:
+        value: Valor numérico a ser formatado
+        incluir_simbolo: Se True, inclui o símbolo R$ no início
+    
+    Returns:
+        String formatada (ex: "R$ 1.234,56" ou "1.234,56")
     """
     if value is None:
-        return 'R$ 0,00'
+        return 'R$ 0,00' if incluir_simbolo else '0,00'
     
     try:
         # Converter para float se necessário
@@ -20,9 +25,24 @@ def currency(value):
         # Usar vírgula para decimais e ponto para milhar
         valor_formatado = f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
         
-        return f'R$ {valor_formatado}'
+        if incluir_simbolo:
+            return f'R$ {valor_formatado}'
+        else:
+            return valor_formatado
     except (ValueError, TypeError):
-        return f'R$ {value}'
+        if incluir_simbolo:
+            return f'R$ {value}'
+        else:
+            return str(value)
+
+
+@register.filter(name='currency')
+def currency(value):
+    """
+    Formata um valor numérico como moeda brasileira com separador de milhar.
+    Exemplo: 1234.56 -> R$ 1.234,56
+    """
+    return formatar_valor_moeda(value, incluir_simbolo=True)
 
 
 @register.filter(name='currency_value')
@@ -31,15 +51,7 @@ def currency_value(value):
     Formata apenas o valor numérico com separador de milhar (sem o R$).
     Exemplo: 1234.56 -> 1.234,56
     """
-    if value is None:
-        return '0,00'
-    
-    try:
-        valor = float(value)
-        valor_formatado = f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')
-        return valor_formatado
-    except (ValueError, TypeError):
-        return str(value)
+    return formatar_valor_moeda(value, incluir_simbolo=False)
 
 
 @register.simple_tag(takes_context=True)
