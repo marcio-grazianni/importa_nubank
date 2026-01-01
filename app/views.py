@@ -16,18 +16,18 @@ from .funcoes import (
 )
 
 
-def upload_csv(request):
-    """View para upload e importação de arquivo CSV"""
+def importa_csv(request):
+    """View para importação de arquivo CSV"""
     if request.method == 'POST':
         if 'csv_file' not in request.FILES:
             messages.error(request, 'Por favor, selecione um arquivo CSV.')
-            return redirect('app:transacao_upload')
+            return redirect('app:transacao_importa_csv')
         
         csv_file = request.FILES['csv_file']
         
         if not csv_file.name.endswith('.csv'):
             messages.error(request, 'O arquivo deve ser um CSV.')
-            return redirect('app:transacao_upload')
+            return redirect('app:transacao_importa_csv')
         
         try:
             # Decodificar o arquivo
@@ -78,9 +78,9 @@ def upload_csv(request):
         
         except Exception as e:
             messages.error(request, f'Erro ao processar arquivo CSV: {str(e)}')
-            return redirect('app:transacao_upload')
+            return redirect('app:transacao_importa_csv')
     
-    return render(request, 'app/upload_csv.html')
+    return render(request, 'app/importa_csv.html')
 
 
 class TransacaoListView(ListView):

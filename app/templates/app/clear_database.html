@@ -20,12 +20,12 @@
         A estrutura das tabelas será mantida, mas todos os dados serão perdidos.
     </p>
     
-    <form method="post" style="margin-top: 30px;">
+    <form method="post" id="form-limpar-banco" style="margin-top: 30px;">
         {% csrf_token %}
-        <input type="hidden" name="confirm" value="yes">
+        <input type="hidden" name="confirm" value="yes" id="confirm-input">
         
         <div style="display: flex; gap: 15px; margin-top: 20px;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Tem CERTEZA que deseja excluir TODOS os dados? Esta ação não pode ser desfeita!');">
+            <button type="button" class="btn btn-danger" id="btn-limpar-banco">
                 Sim, Limpar Banco de Dados
             </button>
             <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary" id="btn-cancelar">Cancelar</a>
@@ -36,7 +36,87 @@
 
 {% block extra_js %}
 <script>
-    focarElementoPorId('btn-cancelar');
+    (function() {
+        function focarBotaoCancelar() {
+            var btnCancelar = document.getElementById('btn-cancelar');
+            if (btnCancelar) {
+                btnCancelar.focus();
+            }
+        }
+        
+        // Configurar confirmação moderna com SweetAlert2
+        function configurarConfirmacao() {
+            var btnLimpar = document.getElementById('btn-limpar-banco');
+            var form = document.getElementById('form-limpar-banco');
+            
+            if (btnLimpar && form) {
+                btnLimpar.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    Swal.fire({
+                        title: '⚠️ Tem CERTEZA?',
+                        html: '<p style="font-size: 16px; margin: 15px 0;">Esta ação irá excluir <strong>TODOS</strong> os dados do banco de dados!</p><p style="font-size: 14px; color: #721c24;">Esta operação <strong>NÃO PODE</strong> ser desfeita.</p>',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#dc3545',
+                        cancelButtonColor: '#6c757d',
+                        confirmButtonText: 'Sim, Limpar Banco de Dados',
+                        cancelButtonText: 'Cancelar',
+                        reverseButtons: true,
+                        focusCancel: true,
+                        customClass: {
+                            popup: 'swal2-popup-custom',
+                            title: 'swal2-title-custom',
+                            htmlContainer: 'swal2-html-container-custom'
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Segunda confirmação para garantir
+                            Swal.fire({
+                                title: '🔴 ÚLTIMA CONFIRMAÇÃO',
+                                html: '<p style="font-size: 18px; margin: 20px 0; font-weight: bold;">Você está prestes a excluir <strong>TODOS</strong> os dados permanentemente!</p><p style="font-size: 16px; color: #dc3545;">Esta ação é <strong>IRREVERSÍVEL</strong>!</p>',
+                                icon: 'error',
+                                showCancelButton: true,
+                                confirmButtonColor: '#dc3545',
+                                cancelButtonColor: '#6c757d',
+                                confirmButtonText: 'SIM, EXCLUIR TUDO',
+                                cancelButtonText: 'NÃO, Cancelar',
+                                reverseButtons: true,
+                                focusCancel: true
+                            }).then((result2) => {
+                                if (result2.isConfirmed) {
+                                    // Submeter o formulário
+                                    form.submit();
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(focarBotaoCancelar, 100);
+                configurarConfirmacao();
+            });
+        } else {
+            setTimeout(focarBotaoCancelar, 100);
+            configurarConfirmacao();
+        }
+    })();
 </script>
+<style>
+    .swal2-popup-custom {
+        font-size: 16px;
+    }
+    .swal2-title-custom {
+        font-size: 24px;
+        font-weight: bold;
+    }
+    .swal2-html-container-custom {
+        font-size: 15px;
+    }
+</style>
 {% endblock %}
 
