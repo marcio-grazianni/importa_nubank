@@ -16,7 +16,7 @@
             {{ filtro_form.data_inicio.label_tag }}
             {{ filtro_form.data_inicio }}
             {% if filtro_form.data_inicio.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_inicio.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_inicio.errors }}</div>
             {% endif %}
         </div>
 
@@ -24,7 +24,7 @@
             {{ filtro_form.data_fim.label_tag }}
             {{ filtro_form.data_fim }}
             {% if filtro_form.data_fim.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_fim.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_fim.errors }}</div>
             {% endif %}
         </div>
 
@@ -32,7 +32,7 @@
             {{ filtro_form.movimentacao.label_tag }}
             {{ filtro_form.movimentacao }}
             {% if filtro_form.movimentacao.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.movimentacao.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.movimentacao.errors }}</div>
             {% endif %}
         </div>
 
@@ -40,7 +40,7 @@
             {{ filtro_form.busca.label_tag }}
             {{ filtro_form.busca }}
             {% if filtro_form.busca.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.busca.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.busca.errors }}</div>
             {% endif %}
         </div>
 
@@ -52,30 +52,14 @@
 </div>
 
 {% block extra_media %}
-<script>
-    carregarJQuerySeNecessario();
-</script>
 {{ filtro_form.media }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    (function() {
-        function focarCampoBusca() {
-            var campoBusca = document.getElementById('id_busca');
-            if (campoBusca) {
-                campoBusca.focus();
-            }
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(focarCampoBusca, 100);
-            });
-        } else {
-            setTimeout(focarCampoBusca, 100);
-        }
-    })();
+    window.onload = function () {
+        focarElementoOnload('id_busca');
+    }
 </script>
 {% endblock %}
 
@@ -107,50 +91,50 @@
 
     {% if agrupado %}
     <div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th style="width: 60%;">
-                    <a href="?{% url_with_order 'descricao' %}" style="text-decoration: none; color: inherit;">
-                        Descrição
-                        {% if order_by == 'descricao' %} ↑{% elif order_by == '-descricao' %} ↓{% endif %}
-                    </a>
-                </th>
-                <th style="text-align: right;">
-                    <a href="?{% url_with_order 'quantidade' %}" style="text-decoration: none; color: inherit;">
-                        Quantidade
-                        {% if order_by == 'quantidade' %} ↑{% elif order_by == '-quantidade' %} ↓{% endif %}
-                    </a>
-                </th>
-                <th style="text-align: right;">
-                    <a href="?{% url_with_order 'total_valor' %}" style="text-decoration: none; color: inherit;">
-                        Valor Total
-                        {% if order_by == 'total_valor' %} ↑{% elif order_by == '-total_valor' %} ↓{% endif %}
-                    </a>
-                </th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in agrupado %}
-            <tr>
-                <td>{{ item.descricao }}</td>
-                <td style="text-align: right;">{{ item.quantidade }}</td>
-                <td style="text-align: right;" class="{% if item.total_valor >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
-                    {{ item.total_valor|currency }}
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-        <tfoot>
-            <tr style="font-weight: bold; background-color: #f8f9fa;">
-                <td>Total Geral</td>
-                <td style="text-align: right;">{{ total_grupos }} grupos</td>
-                <td style="text-align: right;" class="{% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
-                    {{ saldo|currency }}
-                </td>
-            </tr>
-        </tfoot>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 60%;">
+                        <a href="?{% url_with_order 'descricao' %}" style="text-decoration: none; color: inherit;">
+                            Descrição
+                            {% if order_by == 'descricao' %} ↑{% elif order_by == '-descricao' %} ↓{% endif %}
+                        </a>
+                    </th>
+                    <th style="text-align: right;">
+                        <a href="?{% url_with_order 'quantidade' %}" style="text-decoration: none; color: inherit;">
+                            Quantidade
+                            {% if order_by == 'quantidade' %} ↑{% elif order_by == '-quantidade' %} ↓{% endif %}
+                        </a>
+                    </th>
+                    <th style="text-align: right;">
+                        <a href="?{% url_with_order 'total_valor' %}" style="text-decoration: none; color: inherit;">
+                            Valor Total
+                            {% if order_by == 'total_valor' %} ↑{% elif order_by == '-total_valor' %} ↓{% endif %}
+                        </a>
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in agrupado %}
+                <tr>
+                    <td>{{ item.descricao }}</td>
+                    <td style="text-align: right;">{{ item.quantidade }}</td>
+                    <td style="text-align: right;" class="{% if item.total_valor >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
+                        {{ item.total_valor|currency }}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr style="font-weight: bold; background-color: #f8f9fa;">
+                    <td>Total Geral</td>
+                    <td style="text-align: right;">{{ total_grupos }} grupos</td>
+                    <td style="text-align: right;" class="{% if saldo >= 0 %}valor-positivo{% else %}valor-negativo{% endif %}">
+                        {{ saldo|currency }}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
     </div>
     {% else %}
     <p>Nenhuma transação encontrada com os filtros aplicados.</p>

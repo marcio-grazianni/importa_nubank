@@ -124,8 +124,17 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
-STATIC_ROOT = BASE_DIR / "static"
 STATIC_URL = "/static/"
+
+# Em desenvolvimento, o Django procura arquivos estáticos nestes diretórios
+# assets: arquivos JavaScript customizados (fora da pasta static)
+# static_custom: outros arquivos estáticos customizados (se necessário)
+STATICFILES_DIRS = [
+    BASE_DIR / "assets",
+]
+
+# Em produção, os arquivos estáticos são coletados para este diretório
+STATIC_ROOT = BASE_DIR / "static"
 
 LOGIN_REDIRECT_URL = "/"
 

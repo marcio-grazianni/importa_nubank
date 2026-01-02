@@ -5,18 +5,18 @@
 {% block content %}
 <div class="card">
     <h2>{% if object %}✏️ Editar Transação{% else %}➕ Nova Transação{% endif %}</h2>
-    
+
     <form method="post" style="margin-top: 20px;">
         {% csrf_token %}
-        
+
         <div class="form-group">
             <label for="id_data">Data:</label>
             {{ form.data }}
             {% if form.data.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ form.data.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ form.data.errors }}</div>
             {% endif %}
         </div>
-        
+
         <div class="form-group">
             <label for="id_valor">Valor:</label>
             {{ form.valor }}
@@ -24,26 +24,26 @@
                 Use valores negativos para saídas e positivos para entradas
             </small>
             {% if form.valor.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ form.valor.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ form.valor.errors }}</div>
             {% endif %}
         </div>
-        
+
         <div class="form-group">
             <label for="id_identificador">Identificador (UUID):</label>
             {{ form.identificador }}
             {% if form.identificador.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ form.identificador.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ form.identificador.errors }}</div>
             {% endif %}
         </div>
-        
+
         <div class="form-group">
             <label for="id_descricao">Descrição:</label>
             {{ form.descricao }}
             {% if form.descricao.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ form.descricao.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ form.descricao.errors }}</div>
             {% endif %}
         </div>
-        
+
         <div style="margin-top: 30px;">
             <button type="submit" class="btn btn-success">Salvar</button>
             <a href="{% url 'app:transacao_list' %}" class="btn btn-secondary">Cancelar</a>
@@ -53,56 +53,13 @@
 {% endblock %}
 
 {% block extra_media %}
-<script>
-    carregarJQuerySeNecessario();
-</script>
 {{ form.media }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    (function() {
-        // Função para gerar UUID v4
-        function gerarUUID() {
-            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-                var r = Math.random() * 16 | 0;
-                var v = c == 'x' ? r : (r & 0x3 | 0x8);
-                return v.toString(16);
-            });
-        }
-        
-        // Gerar UUID automaticamente apenas para nova transação (quando não há object)
-        {% if not object %}
-        function preencherUUID() {
-            var campoIdentificador = document.getElementById('id_identificador');
-            if (campoIdentificador && !campoIdentificador.value) {
-                campoIdentificador.value = gerarUUID();
-            }
-        }
-        {% endif %}
-        
-        function focarCampoValor() {
-            var campoValor = document.getElementById('id_valor');
-            if (campoValor) {
-                campoValor.focus();
-            }
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                {% if not object %}
-                preencherUUID();
-                {% endif %}
-                setTimeout(focarCampoValor, 100);
-            });
-        } else {
-            {% if not object %}
-            preencherUUID();
-            {% endif %}
-            setTimeout(focarCampoValor, 100);
-        }
-    })();
+    window.onload = function () {
+        focarElementoOnload('id_valor');
+    }
 </script>
 {% endblock %}
-
-

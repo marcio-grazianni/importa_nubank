@@ -13,7 +13,7 @@
             {{ filtro_form.data_inicio.label_tag }}
             {{ filtro_form.data_inicio }}
             {% if filtro_form.data_inicio.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_inicio.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_inicio.errors }}</div>
             {% endif %}
         </div>
 
@@ -21,7 +21,7 @@
             {{ filtro_form.data_fim.label_tag }}
             {{ filtro_form.data_fim }}
             {% if filtro_form.data_fim.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_fim.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.data_fim.errors }}</div>
             {% endif %}
         </div>
 
@@ -29,7 +29,7 @@
             {{ filtro_form.movimentacao.label_tag }}
             {{ filtro_form.movimentacao }}
             {% if filtro_form.movimentacao.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.movimentacao.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.movimentacao.errors }}</div>
             {% endif %}
         </div>
 
@@ -37,7 +37,7 @@
             {{ filtro_form.busca.label_tag }}
             {{ filtro_form.busca }}
             {% if filtro_form.busca.errors %}
-                <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.busca.errors }}</div>
+            <div style="color: #dc3545; margin-top: 5px;">{{ filtro_form.busca.errors }}</div>
             {% endif %}
         </div>
 
@@ -49,30 +49,14 @@
 </div>
 
 {% block extra_media %}
-<script>
-    carregarJQuerySeNecessario();
-</script>
 {{ filtro_form.media }}
 {% endblock %}
 
 {% block extra_js %}
 <script>
-    (function() {
-        function focarCampoBusca() {
-            var campoBusca = document.getElementById('id_busca');
-            if (campoBusca) {
-                campoBusca.focus();
-            }
-        }
-        
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', function() {
-                setTimeout(focarCampoBusca, 100);
-            });
-        } else {
-            setTimeout(focarCampoBusca, 100);
-        }
-    })();
+    window.onload = function () {
+        focarElementoOnload('id_busca');
+    }
 </script>
 {% endblock %}
 
@@ -106,49 +90,49 @@
 
     {% if transacoes %}
     <div class="table-wrapper">
-    <table>
-        <thead>
-            <tr>
-                <th>
-                    <a href="?{% url_with_order 'data' %}" style="text-decoration: none; color: inherit;">
-                        Data
-                        {% if order_by == 'data' %} ↑{% elif order_by == '-data' %} ↓{% endif %}
-                    </a>
-                </th>
-                <th style="min-width: 140px;">
-                    <a href="?{% url_with_order 'valor' %}" style="text-decoration: none; color: inherit;">
-                        Valor
-                        {% if order_by == 'valor' %} ↑{% elif order_by == '-valor' %} ↓{% endif %}
-                    </a>
-                </th>
-                <th>
-                    <a href="?{% url_with_order 'descricao' %}" style="text-decoration: none; color: inherit;">
-                        Descrição
-                        {% if order_by == 'descricao' %} ↑{% elif order_by == '-descricao' %} ↓{% endif %}
-                    </a>
-                </th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transacao in transacoes %}
-            <tr>
-                <td>{{ transacao.data|date:"d/m/Y" }}</td>
-                <td class="{% if transacao.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}" style="min-width: 140px; white-space: nowrap;">
-                    {{ transacao.valor|currency }}
-                </td>
-                <td>{{ transacao.descricao|truncatewords:15 }}</td>
-                <td>
-                    <div class="actions">
-                        <a href="{% url 'app:transacao_detail' transacao.pk %}" class="btn btn-secondary">Ver</a>
-                        <a href="{% url 'app:transacao_update' transacao.pk %}" class="btn">Editar</a>
-                        <a href="{% url 'app:transacao_delete' transacao.pk %}" class="btn btn-danger">Excluir</a>
-                    </div>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+        <table>
+            <thead>
+                <tr>
+                    <th>
+                        <a href="?{% url_with_order 'data' %}" style="text-decoration: none; color: inherit;">
+                            Data
+                            {% if order_by == 'data' %} ↑{% elif order_by == '-data' %} ↓{% endif %}
+                        </a>
+                    </th>
+                    <th style="min-width: 140px;">
+                        <a href="?{% url_with_order 'valor' %}" style="text-decoration: none; color: inherit;">
+                            Valor
+                            {% if order_by == 'valor' %} ↑{% elif order_by == '-valor' %} ↓{% endif %}
+                        </a>
+                    </th>
+                    <th>
+                        <a href="?{% url_with_order 'descricao' %}" style="text-decoration: none; color: inherit;">
+                            Descrição
+                            {% if order_by == 'descricao' %} ↑{% elif order_by == '-descricao' %} ↓{% endif %}
+                        </a>
+                    </th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transacao in transacoes %}
+                <tr>
+                    <td>{{ transacao.data|date:"d/m/Y" }}</td>
+                    <td class="{% if transacao.is_entrada %}valor-positivo{% else %}valor-negativo{% endif %}" style="min-width: 140px; white-space: nowrap;">
+                        {{ transacao.valor|currency }}
+                    </td>
+                    <td>{{ transacao.descricao|truncatewords:15 }}</td>
+                    <td>
+                        <div class="actions">
+                            <a href="{% url 'app:transacao_detail' transacao.pk %}" class="btn btn-secondary">Ver</a>
+                            <a href="{% url 'app:transacao_update' transacao.pk %}" class="btn">Editar</a>
+                            <a href="{% url 'app:transacao_delete' transacao.pk %}" class="btn btn-danger">Excluir</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 
     <!-- Paginação -->

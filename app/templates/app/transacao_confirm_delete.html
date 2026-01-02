@@ -6,11 +6,11 @@
 {% block content %}
 <div class="card">
     <h2>🗑️ Confirmar Exclusão</h2>
-    
+
     <p style="margin: 20px 0; font-size: 16px;">
         Tem certeza que deseja excluir esta transação?
     </p>
-    
+
     <div class="card" style="background-color: #f8f9fa;">
         <table>
             <tr>
@@ -29,7 +29,7 @@
             </tr>
         </table>
     </div>
-    
+
     <form method="post" style="margin-top: 30px;">
         {% csrf_token %}
         <button type="submit" class="btn btn-danger">Sim, excluir</button>
@@ -40,8 +40,8 @@
 
 {% block extra_js %}
 <script>
-    focarElementoPorId('btn-cancelar');
+    window.onload = function () {
+        focarElementoOnload('btn-cancelar');
+    }
 </script>
 {% endblock %}
-
-
