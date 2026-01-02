@@ -1,11 +1,10 @@
 """
 Funções genéricas reutilizáveis para o sistema de importação Nubank
 """
-import csv
 import calendar
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Dict, List, Tuple, Optional
+from typing import Dict, Tuple, Optional
 from django.db.models import QuerySet
 from .models import TransacaoBancaria
 

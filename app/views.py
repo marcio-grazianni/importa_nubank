@@ -1,4 +1,5 @@
 import csv
+import uuid
 from datetime import date
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -127,8 +128,10 @@ class TransacaoCreateView(CreateView):
     
     def get_initial(self):
         """Define valores iniciais para o formulário"""
+        # Gerar UUID v4 no servidor
         return {
             'data': date.today(),
+            'identificador': str(uuid.uuid4()),
         }
     
     def form_valid(self, form):
