@@ -4,8 +4,7 @@
 
 
 /**
- * Foca em um elemento de forma segura, implementando a lógica diretamente
- * Esta função é autossuficiente e não depende de outras funções
+ * Foca em um elemento de forma segura
  * @param {string} idElemento - ID do elemento a ser focado
  */
 function focarElementoOnload(idElemento) {
@@ -19,7 +18,7 @@ function focarElementoOnload(idElemento) {
 }
 
 /**
- * Foca em um elemento do DOM por ID após um delay
+ * Foca em um elemento do DOM por ID
  * @param {string} idElemento - ID do elemento a ser focado
  */
 function focarElementoPorId(idElemento) {

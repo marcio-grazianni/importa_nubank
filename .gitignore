@@ -6,8 +6,6 @@
 *.sh
 *.csv
 __pycache__
-nubank.sqlite3
-nubank.sqlite
 *.sqlite
 *.sqlite3
 /static
@@ -15,7 +13,6 @@ nubank.sqlite
 /.idea
 /media
 /uploads
-/templates/uploads
 /downloads
 .vscode
 /log
