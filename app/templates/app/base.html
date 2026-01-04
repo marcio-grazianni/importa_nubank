@@ -64,6 +64,8 @@
             /* Prevenir overflow horizontal */
             max-width: 100%;
             box-sizing: border-box;
+            /* Garantir que o conteúdo não ultrapasse */
+            overflow-x: hidden;
         }
 
         header {
@@ -112,6 +114,11 @@
             padding: 12px;
             margin-bottom: 15px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            /* Garantir que não ultrapasse o container */
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            overflow-x: hidden;
         }
 
         /* Usar estilos Bootstrap padrão para botões */
@@ -512,15 +519,39 @@
             gap: 10px;
             margin-bottom: 15px;
             align-items: flex-end;
+            /* Garantir que não ultrapasse o container */
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         .filters .form-group {
             flex: 1;
             min-width: 100%;
+            max-width: 100%;
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
             margin-bottom: 15px;
+            /* Garantir que não ultrapasse */
+            box-sizing: border-box;
+        }
+
+        .filters .form-group input,
+        .filters .form-group select {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .filters .form-group .input-group {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+
+        .filters .form-group input[type="text"] {
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
         }
 
         /* Grupo de botões dos filtros - alinhar com altura dos inputs */
@@ -532,6 +563,11 @@
             justify-content: flex-start;
             margin-top: 0;
             padding-bottom: 0;
+            /* Garantir que não ultrapasse o container */
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            flex-wrap: wrap;
         }
 
         .filters .btn-group-filters .btn {
@@ -545,6 +581,9 @@
             padding: 0.375rem 0.75rem;
             box-sizing: border-box;
             width: auto;
+            min-width: 0;
+            /* Garantir que botões não ultrapassem */
+            max-width: 100%;
         }
 
         /* Estilo único para TODOS os campos de data com datepicker - baseado nos filtros */
@@ -801,6 +840,163 @@
         }
 
         /* ============================================
+           ORIENTAÇÃO LANDSCAPE (Paisagem) - Mobile e Tablet
+           ============================================ */
+        @media (orientation: landscape) and (max-width: 1024px) {
+            /* Ajustar container para melhor uso do espaço horizontal */
+            .container {
+                padding: 10px 15px;
+            }
+
+            /* Header mais compacto em landscape */
+            header {
+                padding: 12px 0;
+                margin-bottom: 15px;
+            }
+
+            header h1 {
+                font-size: 18px;
+            }
+
+            /* Filtros em linha quando em landscape */
+            .filters {
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                gap: 6px;
+                margin-bottom: 12px;
+                /* Garantir que não ultrapasse o container */
+                width: 100%;
+                max-width: 100%;
+                box-sizing: border-box;
+                align-items: flex-end;
+            }
+
+            .filters .form-group:not(.btn-group-filters) {
+                /* Largura mínima para forçar quebra quando necessário */
+                min-width: 160px;
+                /* Flex grow 1 para ocupar espaço disponível, shrink 1 para encolher, basis auto */
+                flex: 1 1 auto;
+                margin-bottom: 0;
+                box-sizing: border-box;
+            }
+            
+            /* Em telas muito pequenas em landscape, forçar 1 coluna */
+            @media (orientation: landscape) and (max-width: 480px) {
+                .filters .form-group:not(.btn-group-filters) {
+                    min-width: 100%;
+                    max-width: 100%;
+                    flex: 0 0 100%;
+                }
+            }
+
+            /* Botões dos filtros em landscape - ocupam linha completa */
+            .filters .btn-group-filters {
+                flex-direction: row;
+                align-items: flex-end;
+                width: 100%;
+                max-width: 100%;
+                flex-wrap: nowrap;
+                flex: 0 0 100%;
+                min-width: 100%;
+                gap: 6px;
+                margin-top: 0;
+            }
+
+            .filters .btn-group-filters .btn {
+                flex: 1 1 auto;
+                min-width: 80px;
+                max-width: calc(50% - 3px);
+                box-sizing: border-box;
+            }
+
+            /* Stats em grid com mais colunas em landscape */
+            .stats {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 10px;
+                margin-bottom: 12px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stat-card .value {
+                font-size: 18px;
+            }
+
+            /* Ações em linha */
+            .actions {
+                flex-direction: row !important;
+                gap: 8px;
+            }
+
+            /* Navegação em linha */
+            nav {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 8px;
+                margin-top: 8px;
+            }
+
+            nav a {
+                margin-right: 0;
+                padding: 6px 10px;
+                font-size: 11px;
+            }
+
+            /* Paginação em linha */
+            .pagination {
+                flex-wrap: nowrap;
+                gap: 5px;
+            }
+
+            /* Cards com padding reduzido */
+            .card {
+                padding: 12px;
+                margin-bottom: 12px;
+            }
+
+            /* Tabelas com melhor aproveitamento do espaço */
+            .table-wrapper {
+                margin: 10px -12px;
+                padding: 0 12px;
+            }
+
+            th, td {
+                padding: 6px 8px;
+                font-size: 11px;
+            }
+
+            /* Datepicker ajustado para landscape */
+            .bootstrap-datetimepicker-widget {
+                width: 280px !important;
+                max-width: 280px !important;
+            }
+
+            .bootstrap-datetimepicker-widget.dropdown-menu {
+                width: 280px !important;
+                max-width: 280px !important;
+            }
+
+            /* Botões mais compactos */
+            .btn {
+                padding: 0.4rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            /* Formulários mais compactos */
+            .form-group {
+                margin-bottom: 12px;
+            }
+
+            /* Campo de Data no formulário - Landscape: 2/12 (16.67%) */
+            .form-group-data .input-group {
+                width: 16.67%;
+                max-width: 16.67%;
+            }
+        }
+
+        /* ============================================
            TABLET E ACIMA (min-width: 481px)
            ============================================ */
         @media (min-width: 481px) {
@@ -881,13 +1077,24 @@
 
             .filters {
                 flex-direction: row;
+                flex-wrap: wrap;
                 gap: 12px;
                 margin-bottom: 18px;
             }
 
-            .filters .form-group {
+            .filters .form-group:not(.btn-group-filters) {
                 min-width: 200px;
+                /* Flex grow 1 para ocupar espaço disponível, shrink 1 para encolher, basis auto */
+                flex: 1 1 auto;
                 margin-bottom: 0;
+                box-sizing: border-box;
+            }
+            
+            /* Botões dos filtros sempre em linha completa */
+            .filters .btn-group-filters {
+                flex: 0 0 100%;
+                min-width: 100%;
+                width: 100%;
             }
 
             .stats {
